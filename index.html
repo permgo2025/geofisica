@@ -1,0 +1,756 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/L.Control.Locate.min.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet-search.css">
+        <link rel="stylesheet" href="css/leaflet-measure.css">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <title></title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/L.Control.Locate.min.js"></script>
+        <script src="js/multi-style-layer.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet-measure.js"></script>
+        <script src="js/leaflet-search.js"></script>
+        <script src="data/LevantamentoAerogeofsico4_2.js"></script>
+        <script src="data/LevantamentoAerogeofsico3_3.js"></script>
+        <script src="data/LevantamentoAerogeofsico2_4.js"></script>
+        <script src="data/LevantamentoAerogeofsico1_5.js"></script>
+        <script src="data/LimiteMunicipal_6.js"></script>
+        <script>
+        var map = L.map('map', {
+            zoomControl:false, maxZoom:28, minZoom:1
+        }).fitBounds([[-19.675948468987393,-57.67939809187785],[-12.217388549512522,-41.47631964612197]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        // remove popup's row if "visible-with-data"
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        // add class to format popup if it contains media
+		function addClassToPopupIfMedia(content, popup) {
+			var tempDiv = document.createElement('div');
+			tempDiv.innerHTML = content;
+			if (tempDiv.querySelector('td img')) {
+				popup._contentNode.classList.add('media');
+					// Delay to force the redraw
+					setTimeout(function() {
+						popup.update();
+					}, 10);
+			} else {
+				popup._contentNode.classList.remove('media');
+			}
+		}
+        var zoomControl = L.control.zoom({
+            position: 'topleft'
+        }).addTo(map);
+        L.control.locate({locateOptions: {maxZoom: 19}}).addTo(map);
+        var measureControl = new L.Control.Measure({
+            position: 'topleft',
+            primaryLengthUnit: 'meters',
+            secondaryLengthUnit: 'kilometers',
+            primaryAreaUnit: 'sqmeters',
+            secondaryAreaUnit: 'hectares'
+        });
+        measureControl.addTo(map);
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0].innerHTML = '';
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0].className += ' fas fa-ruler';
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        map.createPane('pane_OSMStandard_0');
+        map.getPane('pane_OSMStandard_0').style.zIndex = 400;
+        var layer_OSMStandard_0 = L.tileLayer('http://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            pane: 'pane_OSMStandard_0',
+            opacity: 1.0,
+            attribution: '<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors, CC-BY-SA</a>',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 19
+        });
+        layer_OSMStandard_0;
+        map.addLayer(layer_OSMStandard_0);
+        map.createPane('pane_GoogleHybrid_1');
+        map.getPane('pane_GoogleHybrid_1').style.zIndex = 401;
+        var layer_GoogleHybrid_1 = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+            pane: 'pane_GoogleHybrid_1',
+            opacity: 1.0,
+            attribution: '<a href="https://www.google.at/permissions/geoguidelines/attr-guide.html">Map data ©2015 Google</a>',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 20
+        });
+        layer_GoogleHybrid_1;
+        map.addLayer(layer_GoogleHybrid_1);
+        function pop_LevantamentoAerogeofsico4_2(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">id</th>\
+                        <td>' + (feature.properties['id'] !== null ? autolinker.link(String(feature.properties['id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">id_projeto</th>\
+                        <td>' + (feature.properties['id_projeto'] !== null ? autolinker.link(String(feature.properties['id_projeto']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">id_serie</th>\
+                        <td>' + (feature.properties['id_serie'] !== null ? autolinker.link(String(feature.properties['id_serie']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">shape__are</th>\
+                        <td>' + (feature.properties['shape__are'] !== null ? autolinker.link(String(feature.properties['shape__are']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">shape__len</th>\
+                        <td>' + (feature.properties['shape__len'] !== null ? autolinker.link(String(feature.properties['shape__len']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">objectid</th>\
+                        <td>' + (feature.properties['objectid'] !== null ? autolinker.link(String(feature.properties['objectid']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">titulo</th>\
+                        <td>' + (feature.properties['titulo'] !== null ? autolinker.link(String(feature.properties['titulo']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">metodos</th>\
+                        <td>' + (feature.properties['metodos'] !== null ? autolinker.link(String(feature.properties['metodos']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">altura_voo</th>\
+                        <td>' + (feature.properties['altura_voo'] !== null ? autolinker.link(String(feature.properties['altura_voo']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">area_levan</th>\
+                        <td>' + (feature.properties['area_levan'] !== null ? autolinker.link(String(feature.properties['area_levan']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">quilometra</th>\
+                        <td>' + (feature.properties['quilometra'] !== null ? autolinker.link(String(feature.properties['quilometra']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">direcao_lv</th>\
+                        <td>' + (feature.properties['direcao_lv'] !== null ? autolinker.link(String(feature.properties['direcao_lv']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">direcao_lc</th>\
+                        <td>' + (feature.properties['direcao_lc'] !== null ? autolinker.link(String(feature.properties['direcao_lc']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">espacament</th>\
+                        <td>' + (feature.properties['espacament'] !== null ? autolinker.link(String(feature.properties['espacament']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">espacame_1</th>\
+                        <td>' + (feature.properties['espacame_1'] !== null ? autolinker.link(String(feature.properties['espacame_1']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">serie</th>\
+                        <td>' + (feature.properties['serie'] !== null ? autolinker.link(String(feature.properties['serie']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">disponibil</th>\
+                        <td>' + (feature.properties['disponibil'] !== null ? autolinker.link(String(feature.properties['disponibil']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">imagens</th>\
+                        <td>' + (feature.properties['imagens'] !== null ? autolinker.link(String(feature.properties['imagens']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">intervalo</th>\
+                        <td>' + (feature.properties['intervalo'] !== null ? autolinker.link(String(feature.properties['intervalo']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">contratant</th>\
+                        <td>' + (feature.properties['contratant'] !== null ? autolinker.link(String(feature.properties['contratant']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">contratada</th>\
+                        <td>' + (feature.properties['contratada'] !== null ? autolinker.link(String(feature.properties['contratada']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">ano_projet</th>\
+                        <td>' + (feature.properties['ano_projet'] !== null ? autolinker.link(String(feature.properties['ano_projet']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">decada</th>\
+                        <td>' + (feature.properties['decada'] !== null ? autolinker.link(String(feature.properties['decada']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">ano_conclu</th>\
+                        <td>' + (feature.properties['ano_conclu'] !== null ? autolinker.link(String(feature.properties['ano_conclu']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">localizaca</th>\
+                        <td>' + (feature.properties['localizaca'] !== null ? autolinker.link(String(feature.properties['localizaca']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">situacao</th>\
+                        <td>' + (feature.properties['situacao'] !== null ? autolinker.link(String(feature.properties['situacao']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_LevantamentoAerogeofsico4_2_0() {
+            return {
+                pane: 'pane_LevantamentoAerogeofsico4_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,158,23,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_LevantamentoAerogeofsico4_2');
+        map.getPane('pane_LevantamentoAerogeofsico4_2').style.zIndex = 402;
+        map.getPane('pane_LevantamentoAerogeofsico4_2').style['mix-blend-mode'] = 'normal';
+        var layer_LevantamentoAerogeofsico4_2 = new L.geoJson(json_LevantamentoAerogeofsico4_2, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_LevantamentoAerogeofsico4_2',
+            layerName: 'layer_LevantamentoAerogeofsico4_2',
+            pane: 'pane_LevantamentoAerogeofsico4_2',
+            onEachFeature: pop_LevantamentoAerogeofsico4_2,
+            style: style_LevantamentoAerogeofsico4_2_0,
+        });
+        bounds_group.addLayer(layer_LevantamentoAerogeofsico4_2);
+        function pop_LevantamentoAerogeofsico3_3(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">id</th>\
+                        <td>' + (feature.properties['id'] !== null ? autolinker.link(String(feature.properties['id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">id_projeto</th>\
+                        <td>' + (feature.properties['id_projeto'] !== null ? autolinker.link(String(feature.properties['id_projeto']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">id_serie</th>\
+                        <td>' + (feature.properties['id_serie'] !== null ? autolinker.link(String(feature.properties['id_serie']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Título</th>\
+                        <td>' + (feature.properties['titulo'] !== null ? autolinker.link(String(feature.properties['titulo']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Métodos</th>\
+                        <td>' + (feature.properties['metodos'] !== null ? autolinker.link(String(feature.properties['metodos']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Altura do Voo</th>\
+                        <td>' + (feature.properties['altura_voo'] !== null ? autolinker.link(String(feature.properties['altura_voo']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Área do levantamento</th>\
+                        <td>' + (feature.properties['area_levan'] !== null ? autolinker.link(String(feature.properties['area_levan']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Quilometragem</th>\
+                        <td>' + (feature.properties['quilometra'] !== null ? autolinker.link(String(feature.properties['quilometra']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Direção LV</th>\
+                        <td>' + (feature.properties['direcao_lv'] !== null ? autolinker.link(String(feature.properties['direcao_lv']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Direção LC</th>\
+                        <td>' + (feature.properties['direcao_lc'] !== null ? autolinker.link(String(feature.properties['direcao_lc']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Espaçamento</th>\
+                        <td>' + (feature.properties['espacament'] !== null ? autolinker.link(String(feature.properties['espacament']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Espaçamento 1</th>\
+                        <td>' + (feature.properties['espacame_1'] !== null ? autolinker.link(String(feature.properties['espacame_1']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Série</th>\
+                        <td>' + (feature.properties['serie'] !== null ? autolinker.link(String(feature.properties['serie']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Disponibilidade</th>\
+                        <td>' + (feature.properties['disponibil'] !== null ? autolinker.link(String(feature.properties['disponibil']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Imagens</th>\
+                        <td>' + (feature.properties['imagens'] !== null ? autolinker.link(String(feature.properties['imagens']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Intervalo</th>\
+                        <td>' + (feature.properties['intervalo'] !== null ? autolinker.link(String(feature.properties['intervalo']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Contratante</th>\
+                        <td>' + (feature.properties['contratant'] !== null ? autolinker.link(String(feature.properties['contratant']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Contratada</th>\
+                        <td>' + (feature.properties['contratada'] !== null ? autolinker.link(String(feature.properties['contratada']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Ano do Projeto</th>\
+                        <td>' + (feature.properties['ano_projet'] !== null ? autolinker.link(String(feature.properties['ano_projet']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Década</th>\
+                        <td>' + (feature.properties['decada'] !== null ? autolinker.link(String(feature.properties['decada']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Ano de Conclusão</th>\
+                        <td>' + (feature.properties['ano_conclu'] !== null ? autolinker.link(String(feature.properties['ano_conclu']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Localização</th>\
+                        <td>' + (feature.properties['localizaca'] !== null ? autolinker.link(String(feature.properties['localizaca']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Situação</th>\
+                        <td>' + (feature.properties['situacao'] !== null ? autolinker.link(String(feature.properties['situacao']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_LevantamentoAerogeofsico3_3_0() {
+            return {
+                pane: 'pane_LevantamentoAerogeofsico3_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(152,125,183,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_LevantamentoAerogeofsico3_3');
+        map.getPane('pane_LevantamentoAerogeofsico3_3').style.zIndex = 403;
+        map.getPane('pane_LevantamentoAerogeofsico3_3').style['mix-blend-mode'] = 'normal';
+        var layer_LevantamentoAerogeofsico3_3 = new L.geoJson(json_LevantamentoAerogeofsico3_3, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_LevantamentoAerogeofsico3_3',
+            layerName: 'layer_LevantamentoAerogeofsico3_3',
+            pane: 'pane_LevantamentoAerogeofsico3_3',
+            onEachFeature: pop_LevantamentoAerogeofsico3_3,
+            style: style_LevantamentoAerogeofsico3_3_0,
+        });
+        bounds_group.addLayer(layer_LevantamentoAerogeofsico3_3);
+        function pop_LevantamentoAerogeofsico2_4(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">id</th>\
+                        <td>' + (feature.properties['id'] !== null ? autolinker.link(String(feature.properties['id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">id_projeto</th>\
+                        <td>' + (feature.properties['id_projeto'] !== null ? autolinker.link(String(feature.properties['id_projeto']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Série</th>\
+                        <td>' + (feature.properties['id_serie'] !== null ? autolinker.link(String(feature.properties['id_serie']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">shape__are</th>\
+                        <td>' + (feature.properties['shape__are'] !== null ? autolinker.link(String(feature.properties['shape__are']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">shape__len</th>\
+                        <td>' + (feature.properties['shape__len'] !== null ? autolinker.link(String(feature.properties['shape__len']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">objectid</th>\
+                        <td>' + (feature.properties['objectid'] !== null ? autolinker.link(String(feature.properties['objectid']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Título</th>\
+                        <td>' + (feature.properties['titulo'] !== null ? autolinker.link(String(feature.properties['titulo']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Métodos</th>\
+                        <td>' + (feature.properties['metodos'] !== null ? autolinker.link(String(feature.properties['metodos']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Altura de Voo</th>\
+                        <td>' + (feature.properties['altura_voo'] !== null ? autolinker.link(String(feature.properties['altura_voo']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Área do levantamento</th>\
+                        <td>' + (feature.properties['area_levan'] !== null ? autolinker.link(String(feature.properties['area_levan']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Quilometragem</th>\
+                        <td>' + (feature.properties['quilometra'] !== null ? autolinker.link(String(feature.properties['quilometra']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Direção LV</th>\
+                        <td>' + (feature.properties['direcao_lv'] !== null ? autolinker.link(String(feature.properties['direcao_lv']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Direção LC</th>\
+                        <td>' + (feature.properties['direcao_lc'] !== null ? autolinker.link(String(feature.properties['direcao_lc']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Espaçamento</th>\
+                        <td>' + (feature.properties['espacament'] !== null ? autolinker.link(String(feature.properties['espacament']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Espaçamento 1</th>\
+                        <td>' + (feature.properties['espacame_1'] !== null ? autolinker.link(String(feature.properties['espacame_1']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Série</th>\
+                        <td>' + (feature.properties['serie'] !== null ? autolinker.link(String(feature.properties['serie']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Disponibilidade</th>\
+                        <td>' + (feature.properties['disponibil'] !== null ? autolinker.link(String(feature.properties['disponibil']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Imagens</th>\
+                        <td>' + (feature.properties['imagens'] !== null ? autolinker.link(String(feature.properties['imagens']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Intervalo</th>\
+                        <td>' + (feature.properties['intervalo'] !== null ? autolinker.link(String(feature.properties['intervalo']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Contratante</th>\
+                        <td>' + (feature.properties['contratant'] !== null ? autolinker.link(String(feature.properties['contratant']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Contratada</th>\
+                        <td>' + (feature.properties['contratada'] !== null ? autolinker.link(String(feature.properties['contratada']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Ano do Projeto</th>\
+                        <td>' + (feature.properties['ano_projet'] !== null ? autolinker.link(String(feature.properties['ano_projet']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Década</th>\
+                        <td>' + (feature.properties['decada'] !== null ? autolinker.link(String(feature.properties['decada']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Ano de Conclusão</th>\
+                        <td>' + (feature.properties['ano_conclu'] !== null ? autolinker.link(String(feature.properties['ano_conclu']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Localização</th>\
+                        <td>' + (feature.properties['localizaca'] !== null ? autolinker.link(String(feature.properties['localizaca']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Situação</th>\
+                        <td>' + (feature.properties['situacao'] !== null ? autolinker.link(String(feature.properties['situacao']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_LevantamentoAerogeofsico2_4_0() {
+            return {
+                pane: 'pane_LevantamentoAerogeofsico2_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(229,182,54,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_LevantamentoAerogeofsico2_4');
+        map.getPane('pane_LevantamentoAerogeofsico2_4').style.zIndex = 404;
+        map.getPane('pane_LevantamentoAerogeofsico2_4').style['mix-blend-mode'] = 'normal';
+        var layer_LevantamentoAerogeofsico2_4 = new L.geoJson(json_LevantamentoAerogeofsico2_4, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_LevantamentoAerogeofsico2_4',
+            layerName: 'layer_LevantamentoAerogeofsico2_4',
+            pane: 'pane_LevantamentoAerogeofsico2_4',
+            onEachFeature: pop_LevantamentoAerogeofsico2_4,
+            style: style_LevantamentoAerogeofsico2_4_0,
+        });
+        bounds_group.addLayer(layer_LevantamentoAerogeofsico2_4);
+        function pop_LevantamentoAerogeofsico1_5(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">id_projeto</th>\
+                        <td>' + (feature.properties['id_projeto'] !== null ? autolinker.link(String(feature.properties['id_projeto']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">id_serie</th>\
+                        <td>' + (feature.properties['id_serie'] !== null ? autolinker.link(String(feature.properties['id_serie']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Título</th>\
+                        <td>' + (feature.properties['titulo'] !== null ? autolinker.link(String(feature.properties['titulo']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Métodos</th>\
+                        <td>' + (feature.properties['metodos'] !== null ? autolinker.link(String(feature.properties['metodos']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Altura do Voo</th>\
+                        <td>' + (feature.properties['altura_voo'] !== null ? autolinker.link(String(feature.properties['altura_voo']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Área do Levantamento</th>\
+                        <td>' + (feature.properties['area_levan'] !== null ? autolinker.link(String(feature.properties['area_levan']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Quilometragem</th>\
+                        <td>' + (feature.properties['quilometra'] !== null ? autolinker.link(String(feature.properties['quilometra']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Direção LV</th>\
+                        <td>' + (feature.properties['direcao_lv'] !== null ? autolinker.link(String(feature.properties['direcao_lv']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Direção LC</th>\
+                        <td>' + (feature.properties['direcao_lc'] !== null ? autolinker.link(String(feature.properties['direcao_lc']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Espaçamento</th>\
+                        <td>' + (feature.properties['espacament'] !== null ? autolinker.link(String(feature.properties['espacament']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Espaçamento 1</th>\
+                        <td>' + (feature.properties['espacame_1'] !== null ? autolinker.link(String(feature.properties['espacame_1']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Série</th>\
+                        <td>' + (feature.properties['serie'] !== null ? autolinker.link(String(feature.properties['serie']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Disponibilidade</th>\
+                        <td>' + (feature.properties['disponibil'] !== null ? autolinker.link(String(feature.properties['disponibil']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Imagens</th>\
+                        <td>' + (feature.properties['imagens'] !== null ? autolinker.link(String(feature.properties['imagens']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Intervalo</th>\
+                        <td>' + (feature.properties['intervalo'] !== null ? autolinker.link(String(feature.properties['intervalo']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Contratante</th>\
+                        <td>' + (feature.properties['contratant'] !== null ? autolinker.link(String(feature.properties['contratant']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Contratada</th>\
+                        <td>' + (feature.properties['contratada'] !== null ? autolinker.link(String(feature.properties['contratada']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Ano do Projeto</th>\
+                        <td>' + (feature.properties['ano_projet'] !== null ? autolinker.link(String(feature.properties['ano_projet']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Década</th>\
+                        <td>' + (feature.properties['decada'] !== null ? autolinker.link(String(feature.properties['decada']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Ano da Conclusão</th>\
+                        <td>' + (feature.properties['ano_conclu'] !== null ? autolinker.link(String(feature.properties['ano_conclu']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Localização</th>\
+                        <td>' + (feature.properties['localizaca'] !== null ? autolinker.link(String(feature.properties['localizaca']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Situação</th>\
+                        <td>' + (feature.properties['situacao'] !== null ? autolinker.link(String(feature.properties['situacao']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_LevantamentoAerogeofsico1_5_0() {
+            return {
+                pane: 'pane_LevantamentoAerogeofsico1_5',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(145,82,45,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_LevantamentoAerogeofsico1_5');
+        map.getPane('pane_LevantamentoAerogeofsico1_5').style.zIndex = 405;
+        map.getPane('pane_LevantamentoAerogeofsico1_5').style['mix-blend-mode'] = 'normal';
+        var layer_LevantamentoAerogeofsico1_5 = new L.geoJson(json_LevantamentoAerogeofsico1_5, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_LevantamentoAerogeofsico1_5',
+            layerName: 'layer_LevantamentoAerogeofsico1_5',
+            pane: 'pane_LevantamentoAerogeofsico1_5',
+            onEachFeature: pop_LevantamentoAerogeofsico1_5,
+            style: style_LevantamentoAerogeofsico1_5_0,
+        });
+        bounds_group.addLayer(layer_LevantamentoAerogeofsico1_5);
+        function pop_LimiteMunicipal_6(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Município</th>\
+                        <td>' + (feature.properties['Nome_Ac'] !== null ? autolinker.link(String(feature.properties['Nome_Ac']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Região de Planejamento</th>\
+                        <td>' + (feature.properties['RegPlan'] !== null ? autolinker.link(String(feature.properties['RegPlan']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">População</th>\
+                        <td>' + (feature.properties['Pop_2022'] !== null ? autolinker.link(String(feature.properties['Pop_2022']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_LimiteMunicipal_6_0() {
+            return {
+                pane: 'pane_LimiteMunicipal_6',
+                opacity: 1,
+                color: 'rgba(255,255,255,1.0)',
+                dashArray: '15.0,3.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 3.0, 
+                fillOpacity: 0,
+                interactive: true,
+            }
+        }
+        function style_LimiteMunicipal_6_1() {
+            return {
+                pane: 'pane_LimiteMunicipal_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '4.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fillOpacity: 0,
+                interactive: true,
+            }
+        }
+        map.createPane('pane_LimiteMunicipal_6');
+        map.getPane('pane_LimiteMunicipal_6').style.zIndex = 406;
+        map.getPane('pane_LimiteMunicipal_6').style['mix-blend-mode'] = 'normal';
+        var layer_LimiteMunicipal_6 = new L.geoJson.multiStyle(json_LimiteMunicipal_6, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_LimiteMunicipal_6',
+            layerName: 'layer_LimiteMunicipal_6',
+            pane: 'pane_LimiteMunicipal_6',
+            onEachFeature: pop_LimiteMunicipal_6,
+            styles: [style_LimiteMunicipal_6_0,style_LimiteMunicipal_6_1,]
+        });
+        bounds_group.addLayer(layer_LimiteMunicipal_6);
+        map.addLayer(layer_LimiteMunicipal_6);
+        var overlaysTree = [
+            {label: '<img src="legend/LimiteMunicipal_6.png" /> Limite Municipal', layer: layer_LimiteMunicipal_6},
+            {label: '<img src="legend/LevantamentoAerogeofsico1_5.png" /> Levantamento Aerogeofísico 1', layer: layer_LevantamentoAerogeofsico1_5},
+            {label: '<img src="legend/LevantamentoAerogeofsico2_4.png" /> Levantamento Aerogeofísico 2', layer: layer_LevantamentoAerogeofsico2_4},
+            {label: '<img src="legend/LevantamentoAerogeofsico3_3.png" /> Levantamento Aerogeofísico 3', layer: layer_LevantamentoAerogeofsico3_3},
+            {label: '<img src="legend/LevantamentoAerogeofsico4_2.png" /> Levantamento Aerogeofísico 4', layer: layer_LevantamentoAerogeofsico4_2},
+            {label: "Google Hybrid", layer: layer_GoogleHybrid_1},
+            {label: "OSM Standard", layer: layer_OSMStandard_0},]
+        var lay = L.control.layers.tree(null, overlaysTree,{
+            //namedToggle: true,
+            //selectorBack: false,
+            //closedSymbol: '&#8862; &#x1f5c0;',
+            //openedSymbol: '&#8863; &#x1f5c1;',
+            //collapseAll: 'Collapse all',
+            //expandAll: 'Expand all',
+            collapsed: true,
+        });
+        lay.addTo(map);
+        setBounds();
+        map.addControl(new L.Control.Search({
+            layer: layer_LimiteMunicipal_6,
+            initial: false,
+            hideMarkerOnCollapse: true,
+            propertyName: 'Nome_Ac'}));
+        document.getElementsByClassName('search-button')[0].className +=
+         ' fa fa-binoculars';
+        </script>
+    </body>
+</html>
